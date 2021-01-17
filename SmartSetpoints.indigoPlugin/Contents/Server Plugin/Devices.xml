@@ -1,0 +1,326 @@
+<?xml version="1.0"?>
+<Devices>
+	<Device type="custom" id="SmartSetpoints">
+		<Name>Smart Setpoints</Name>
+		<ConfigUI>
+			<Field id='description' type='label'>
+                <Label>Automatically update heat/cool setpoint based on learned preferences throughout the day. Preferences are tracked per-hour, and the smart setpoint uses an average of the last 10 values.</Label>
+            </Field>
+            <Field id='outputSeparator' type='separator' />
+			<Field id='outputDescription' type='label' fontSize='small' fontColor='darkgray'>
+                <Label>Define the destination of the setpoint output - a thermostat device or variable.</Label>
+			</Field>
+			<Field id='outputDevice' type='menu'>
+                <Label>Thermostat:</Label>
+                <List class='self' method='getThermoDeviceList'/>
+            </Field>
+			<Field id='temperatureUnits' type='menu' defaultValue="F">
+                <Label>Temperature Units:</Label>
+                <List>
+					<Option value="F">Fahrenheit</Option>
+					<Option value="C">Celcius</Option>
+				</List>
+            </Field>
+			<Field type="separator" id="coolSeparator" />
+			<Field id='setpointSection' type='label' fontColor='blue'>
+                <Label>Setpoint Preferences</Label>
+			</Field>
+			<Field id='setpointDescription' type='label'>
+                <Label>Set initial value for heat/cool setpoint. 'Save' will reset existing values to the initial values specified.</Label>
+            </Field>
+			<Field id="SupportsCoolSetpoint" type="checkbox" defaultValue="true">
+				<Label>Learn Cool Setpoint:</Label>
+			</Field>
+			<Field type='textfield' id="InitialCoolSetpoint" defaultValue='85' visibleBindingId='SupportsCoolSetpoint' visibleBindingValue='true'>
+				<Label>Initial Cool Setpoint:</Label>
+			</Field>
+			<Field id="SupportsHeatSetpoint" type="checkbox" defaultValue="true">
+				<Label>Learn Heat Setpoint:</Label>
+			</Field>
+			<Field type='textfield' id="InitialHeatSetpoint" defaultValue='65' visibleBindingId='SupportsHeatSetpoint' visibleBindingValue='true'>
+				<Label>Initial Heat Setpoint:</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="setpointDisplay">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Display String for Setpoints</TriggerLabel>
+				<ControlPageLabel>Display String for Setpoints</ControlPageLabel>
+			</State>
+			<State id="heatSetpoint">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Current Heat Setpoint</TriggerLabel>
+				<ControlPageLabel>Current Heat Setpoint</ControlPageLabel>
+			</State>
+			<State id="coolSetpoint">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Current Cool Setpoint</TriggerLabel>
+				<ControlPageLabel>Current Cool Setpoint</ControlPageLabel>
+			</State>
+			<State id="device_setpointHeat">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Current Heat Setpoint of the device</TriggerLabel>
+				<ControlPageLabel>Current Heat Setpoint of the device</ControlPageLabel>
+			</State>
+			<State id="device_setpointCool">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Current Cool Setpoint of the device</TriggerLabel>
+				<ControlPageLabel>Current Cool Setpoint of the device</ControlPageLabel>
+			</State>
+			<State id="sep1">
+				<ValueType>Separator</ValueType>
+			</State>
+			<State id="lastManualUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Setpoint Update via the Thermostat</TriggerLabel>
+				<ControlPageLabel>Last Setpoint Update via the Thermostat</ControlPageLabel>
+			</State>
+			<State id="lastSmartUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Setpoint Smart Update</TriggerLabel>
+				<ControlPageLabel>Last Setpoint Smart Update</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint00">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint01">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint02">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint03">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint04">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint05">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint06">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint07">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint08">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint09">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint10">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint11">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint12">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint13">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint14">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint15">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint16">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint17">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint18">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint19">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint20">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint21">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint22">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="heatsetpoint23">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint00">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint01">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint02">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint03">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint04">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint05">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint06">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint07">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint08">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint09">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint10">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint11">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint12">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint13">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint14">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint15">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint16">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint17">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint18">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint19">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint20">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint21">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint22">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+			<State id="coolsetpoint23">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last 10 Updates</TriggerLabel>
+				<ControlPageLabel>Last 10 Updates</ControlPageLabel>
+			</State>
+		</States>
+		<UiDisplayStateId>setpointDisplay</UiDisplayStateId>
+	</Device>
+</Devices>
