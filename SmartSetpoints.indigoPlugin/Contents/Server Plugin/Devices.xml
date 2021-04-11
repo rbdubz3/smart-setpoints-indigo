@@ -8,7 +8,7 @@
             </Field>
             <Field id='outputSeparator' type='separator' />
 			<Field id='outputDescription' type='label' fontSize='small' fontColor='darkgray'>
-                <Label>Define the destination of the setpoint output - a thermostat device or variable.</Label>
+                <Label>Define the destination thermostate device for the setpoint output.</Label>
 			</Field>
 			<Field id='outputDevice' type='menu'>
                 <Label>Thermostat:</Label>
