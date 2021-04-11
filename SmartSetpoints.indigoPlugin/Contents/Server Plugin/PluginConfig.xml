@@ -4,4 +4,44 @@
 	<Field id='showDebugInfo' type='checkbox' defaultValue='false'>
 		<Label>Enable debuging:</Label>
 	</Field>
+	<Field id='setpointAutoIntervalSep' type='separator' />
+	<Field id="setpointAutoInterval" type="menu" defaultValue="30">
+		<Label>Setpoint Automation Interval:</Label>
+		<List>
+			<Option value="60">60 Min</Option>
+			<Option value="30">30 Min</Option>
+			<Option value="15">15 Min</Option>
+		</List>
+	</Field>
+	<Field id="setpointAutoIntervalDesc" type="label" alignWithControl="false" fontSize="small" fontColor="darkgray">
+		<Label>Number of minutes in between setpoint automation checks. The smart setpoint average will be compared to the current setpoint value. If there is any delta the smart setpoint value will be used.</Label>
+	</Field>
+	<Field id='pauseIntervalSep' type='separator' />
+	<Field id='pauseInterval' type="menu" defaultValue="60">
+		<Label>Manual Pause Interval:</Label>
+		<List>
+			<Option value="120">120 Min</Option>
+			<Option value="90">90 Min</Option>
+			<Option value="60">60 Min</Option>
+			<Option value="30">30 Min</Option>
+			<Option value="15">15 Min</Option>
+		</List>
+	</Field>
+	<Field id="pauseIntervalDesc" type="label" alignWithControl="false" fontSize="small" fontColor="darkgray">
+		<Label>Number of minutes following manual thermostat updates to pause setpoint automation. Effectively it will hold the setpoint at the recent value for this length of time.</Label>
+	</Field>
+	<Field id='changeCaptureIntervalSep' type='separator' />
+	<Field id='changeCaptureInterval' type="menu" defaultValue="5">
+		<Label>Change Capture Interval:</Label>
+		<List>
+			<Option value="15">15 Min</Option>
+			<Option value="10">10 Min</Option>
+			<Option value="5">5 Min</Option>
+			<Option value="3">3 Min</Option>
+			<Option value="1">1 Min</Option>
+		</List>
+	</Field>
+	<Field id="changeCaptureIntervalDesc" type="label" alignWithControl="false" fontSize="small" fontColor="darkgray">
+		<Label>Number of minutes following manual thermostat updates for capturing setpoint changes. This accounts for users deciding on a value for setpoint updates. Hence if the capture interval is 5 minutes, the last manual setpoint change during a 5 minute period will be captured.</Label>
+	</Field>
 </PluginConfig>

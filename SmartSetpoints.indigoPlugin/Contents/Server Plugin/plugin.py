@@ -26,12 +26,15 @@ class Plugin(indigo.PluginBase):
     #-------------------------------------------------------------------------------
     def startup(self):
         self.debug = self.pluginPrefs.get("showDebugInfo",False)
+        self.setpointAutoInterval = self.pluginPrefs.get("setpointAutoInterval",30)
+        self.pauseInterval = self.pluginPrefs.get("pauseInterval",60)
+        self.changeCaptureInterval = self.pluginPrefs.get("changeCaptureInterval",5)
         self.logger.debug(u"startup")
-        if self.debug:
-            self.logger.debug(u"Debug logging enabled")
+        self.logger.debug(u"showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
+            str(self.debug), str(self.setpointAutoInterval), str(self.pauseInterval), str(self.changeCaptureInterval)))
         self.deviceDict = dict()
         self.floatPrecision = 1
-
+        
         indigo.devices.subscribeToChanges()
         indigo.variables.subscribeToChanges()
 
@@ -39,14 +42,20 @@ class Plugin(indigo.PluginBase):
     def shutdown(self):
         self.logger.debug(u"shutdown")
         self.pluginPrefs['showDebugInfo'] = self.debug
+        self.pluginPrefs['setpointAutoInterval'] = self.setpointAutoInterval
+        self.pluginPrefs['pauseInterval'] = self.pauseInterval
+        self.pluginPrefs['changeCaptureInterval'] = self.changeCaptureInterval
 
     #-------------------------------------------------------------------------------
     def closedPrefsConfigUi(self, valuesDict, userCancelled):
         self.logger.debug(u"closedPrefsConfigUi")
         if not userCancelled:
             self.debug = valuesDict.get('showDebugInfo',False)
-            if self.debug:
-                self.logger.debug(u"Debug logging enabled")
+            self.setpointAutoInterval = valuesDict.get("setpointAutoInterval",30)
+            self.pauseInterval = valuesDict.get("pauseInterval",60)
+            self.changeCaptureInterval = valuesDict.get("changeCaptureInterval",5)
+            self.logger.debug(u"showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
+                str(self.debug), str(self.setpointAutoInterval), str(self.pauseInterval), str(self.changeCaptureInterval)))
 
     ########################################
     def runConcurrentThread(self):
@@ -54,8 +63,7 @@ class Plugin(indigo.PluginBase):
         try:
             while True:
                 currentDate = datetime.datetime.now()
-                remainder = currentDate.minute % 30
-                #remainder = currentDate.minute % 5
+                remainder = currentDate.minute % self.setpointAutoInterval
                 if remainder == 1:
                     try:
                         # cycle through each Smart Setpoint device
@@ -72,8 +80,7 @@ class Plugin(indigo.PluginBase):
                             self.logger.debug(u'"{}" runConcurrentThread - smart setpoint check - States [lastManualUpdate ts:{} min:{}, Heat target:{} device:{}, Cool target:{} device:{}]'.format(
                                 setpointDevice.name, lastManualUpdStr, str(lastUpdMin), setpointDevice.states['heatSetpoint'], setpointDevice.states['device_setpointHeat'],
                                 setpointDevice.states['coolSetpoint'], setpointDevice.states['device_setpointCool'] ))         
-                            if lastUpdMin > 60:
-                            #if lastUpdMin > 5:
+                            if lastUpdMin > self.pauseInterval:
                                 setPointConfigs = [
                                     {"configType": "heat", 
                                         "supportedProp":"SupportsHeatSetpoint", 
@@ -97,27 +104,6 @@ class Plugin(indigo.PluginBase):
                                                     config['statesPrefix'], smartTemp))
                                         if setpointDevice.pluginProps.get('outputDevice', None) is not None:
                                             thermostatDev = indigo.devices[int(setpointDevice.pluginProps['outputDevice'])]
-                                            #if config['configType'] == 'heat':
-                                            #    if thermostatDev.states['hvacOperationMode'] == indigo.kHvacMode.Heat or thermostatDev.states['hvacOperationMode'] == indigo.kHvacMode.HeatCool:
-                                            #        curThermSetpoint = getTemperatureStrFromFloat(thermostatDev.states[config['thermostatState']])
-                                            #        if curThermSetpoint != smartTemp:
-                                            #            self.logger.info(u'"{}" - updated thermostat {} to smart {}:{}'.format(setpointDevice.name, 
-                                            #                    thermostatDev.name, config['statesPrefix'], smartTemp))
-                                            #            # update the last smart time - this info is used to ensure we don't collect and track this update as user-input
-                                            #            setpointDevice.states['lastSmartUpdate'] = str(currentDate)
-                                            #            setpointDevice.updateStateOnServer('lastSmartUpdate', str(currentDate))
-                                            #            indigo.thermostat.setHeatSetpoint(thermostatDev.id, value=getFloatFromTemperatureStr(smartTemp))
-                                            #else: 
-                                            #    if thermostatDev.states['hvacOperationMode'] == indigo.kHvacMode.Cool or thermostatDev.states['hvacOperationMode'] == indigo.kHvacMode.HeatCool:
-                                            #        curThermSetpoint = getTemperatureStrFromFloat(thermostatDev.states[config['thermostatState']])
-                                            #        if curThermSetpoint != smartTemp:
-                                            #            self.logger.info(u'"{}" - updated thermostat {} to smart {}:{}'.format(setpointDevice.name, 
-                                            #                    thermostatDev.name, config['statesPrefix'], smartTemp))
-                                            #            # update the last smart time - this info is used to ensure we don't collect and track this update as user-input
-                                            #            setpointDevice.states['lastSmartUpdate'] = str(currentDate)
-                                            #            setpointDevice.updateStateOnServer('lastSmartUpdate', str(currentDate))
-                                            #            indigo.thermostat.setCoolSetpoint(thermostatDev.id, value=getFloatFromTemperatureStr(smartTemp))
-
                                             curThermSetpoint = getTemperatureStrFromFloat(thermostatDev.states[config['thermostatState']])
                                             if curThermSetpoint != smartTemp:
                                                 updatedSetpoints = True
@@ -134,7 +120,8 @@ class Plugin(indigo.PluginBase):
                                                     indigo.thermostat.setCoolSetpoint(thermostatDev.id, value=getFloatFromTemperatureStr(smartTemp))
 
                                         if updatedSetpoints == True:
-                                            setpointDevice.updateSetpointDisplay()
+                                            theDevice = self.deviceDict[devId]
+                                            theDevice.updateSetpointDisplay()
 
 
                     except self.StopThread:
@@ -180,18 +167,7 @@ class Plugin(indigo.PluginBase):
         # validate output 
         if not valuesDict.get('outputDevice', 0):
             errorsDict['outputDevice'] = "Required"
-        
-        #if valuesDict.get('outputType','device') == 'device':
-        #    if not valuesDict.get('outputDevice', 0):
-        #        errorsDict['outputDevice'] = "Required"
-        #elif valuesDict.get('outputType','device') == 'variable':
-        #    if not valuesDict.get('outputVariable',0):
-        #        testStateValue = indigo.variables[int(valuesDict['outputVariable'])].value
-        #        if not validateTextFieldNumber(testStateValue, numType=float, zero=True, negative=True):
-        #            errorsDict['outputVariable'] = "Must have a numerical value"
-        #    else:
-        #        errorsDict['outputVariable'] = "Required"
-
+    
         # validate SmartSetpoints
         if typeId == 'SmartSetpoints':
             if not validateTextFieldNumber(valuesDict['InitialCoolSetpoint'], numType=float, zero=False, negative=False):
@@ -316,16 +292,6 @@ class SmartSetpoints(object):
         self.supportsHeat = bool(self.props['SupportsHeatSetpoint'])
         self.temperatureUnits = self.props.get('temperatureUnits', 'F')
 
-        #if self.props.get('outputType','device') == 'device':
-        #    self.outputDeviceId = int(self.props['outputDevice'])
-        #    self.outputVariableId = None
-        #elif self.props.get('outputType','device') == 'variable':
-        #    self.outputDeviceId = None
-        #    self.outputVariableId = int(self.props['outputVariable'])
-        #else:
-        #    self.logger.error(u'"{}" output init failed'.format(self.name))
-        #    raise
-
         keyValueList = []
         # Initialize the core states
         if self.supportsHeat is True:
@@ -420,7 +386,7 @@ class SmartSetpoints(object):
                             self.logger.debug(u'"{}" outputDeviceUpdated - lastUpd:{}, newUpd:{}]'.format(self.name, 
                                     lastUpdateStr, str(currentDate)))
                             newSetpointHrStr = getSmartTemperatureStrForHour(currentStr=currentHrSetpoint, newTemp=newDevSetpoint, 
-                                        lastUpdateStr=lastUpdateStr, curDate=currentDate)
+                                        lastUpdateStr=lastUpdateStr, curDate=currentDate, captureInterval=self.changeCaptureInterval)
                             
                             # save the states to the device
                             updatedSetpoints = True
@@ -542,7 +508,7 @@ def getSmartTemperature(temperatureStr):
 
     return float(round(tempSum/totalNum, 1))
 
-def getSmartTemperatureStrForHour(currentStr, newTemp, lastUpdateStr, curDate):
+def getSmartTemperatureStrForHour(currentStr, newTemp, lastUpdateStr, curDate, captureInterval):
     # Update the setpoint for this hour of day
     # compare time delta for last update
     lastUpdate = datetime.datetime.strptime(lastUpdateStr, '%Y-%m-%d %H:%M:%S.%f')
@@ -555,7 +521,7 @@ def getSmartTemperatureStrForHour(currentStr, newTemp, lastUpdateStr, curDate):
     newTemperatureStr = ''
     for curTemp in tempArray:
         totalNum = totalNum + 1
-        if diffMinutes < 2 and totalNum == 2:
+        if diffMinutes < captureInterval and totalNum == 2:
             ## we just skip the last 'first' item since it was recently added
             continue
         else:
@@ -579,19 +545,9 @@ def getSmartTempHourVariable(mode, hourOfDay):
 
     return hourVariable
 
-def getSmartTemperatureForHour(mode, hourOfDay):
-    # retrieve the setpoint for this hour of day
-    hourVariable = getSmartTempHourVariable(mode, hourOfDay)
-    # first get the current string of 10 last temp settings
-    curTempStr = str(indigo.variables[hourVariable].value)
-    avgTemp = getSmartTemperature(curTempStr)
-    indigo.server.log('...avgTemp for ' + hourVariable + ' = ' + str(avgTemp))
-    return avgTemp
-
 def getPaddedHourStr(hourOfDay):
     if hourOfDay < 10:
         return '0' + str(hourOfDay)
-
     return str(hourOfDay)
 
 def getTemperatureStrFromFloat(inputFloat, precision=1):
