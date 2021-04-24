@@ -1,6 +1,8 @@
 # Smart Setpoints Plugin for Indigo
 
-This [Indigo Domotics][3] plugin is for use with Indigo Thermostat device types. The plugin collects the last 10 setpoint values for each hour of the day. On regular intervals, the plugin will update the Thermostat Setpoints to an average for the current hour of day.
+SmartSetpoints plugin automates learning of your preferred temperatures throughout the day. Rather than just have fixed Heat/Cool setpoints, this plugin captures setpoint values as you manipulate the thermostat settings. Essentially, the last 10 setpoint values for each hour of the day are collected. On regular intervals, the plugin will update the Thermostat Setpoints to an average for the collected values for the current hour of day.
+
+This [Indigo Domotics][3] plugin is for use with Indigo Thermostat device types. 
 
 ### Plugin Features
 * Device Types - supports devices that extend the Indigo Thermostat device type
