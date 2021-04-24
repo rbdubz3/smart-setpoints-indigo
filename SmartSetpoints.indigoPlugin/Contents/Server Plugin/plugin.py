@@ -54,6 +54,9 @@ class Plugin(indigo.PluginBase):
             self.setpointAutoInterval = valuesDict.get("setpointAutoInterval",30)
             self.pauseInterval = valuesDict.get("pauseInterval",60)
             self.changeCaptureInterval = valuesDict.get("changeCaptureInterval",5)
+            for devId in self.deviceDict.iterkeys():
+                setpointDevice = self.deviceDict[devId]
+                setpointDevice.updateChangeCaptureInterval(self.changeCaptureInterval)   
             self.logger.debug(u"showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
                 str(self.debug), str(self.setpointAutoInterval), str(self.pauseInterval), str(self.changeCaptureInterval)))
 
@@ -144,7 +147,7 @@ class Plugin(indigo.PluginBase):
         self.logger.debug(u"deviceStartComm: {}".format(dev.name))
         if dev.configured:
             if dev.deviceTypeId == 'SmartSetpoints':
-                self.deviceDict[dev.id] = SmartSetpoints(dev, self.logger)
+                self.deviceDict[dev.id] = SmartSetpoints(dev, self.changeCaptureInterval, self.logger)
 
     #-------------------------------------------------------------------------------
     def deviceStopComm(self, dev):
@@ -254,7 +257,6 @@ class Plugin(indigo.PluginBase):
                 self.deviceDict[newDev.id].selfDeviceUpdated(newDev)
         else:
             for devId, setpointDevice in self.deviceDict.items():
-                #self.logger.debug(u'"{}" output device updated.'.format(newDev.name))
                 setpointDevice.outputDeviceUpdated(newDev)
 
     #-------------------------------------------------------------------------------
@@ -268,10 +270,11 @@ class Plugin(indigo.PluginBase):
 class SmartSetpoints(object):
 
     #-------------------------------------------------------------------------------
-    def __init__(self, instance, logger):
+    def __init__(self, instance, changeCaptureInterval, logger):
         self.logger = logger
         self.dev = instance
         self.props = instance.pluginProps
+        self.changeCaptureInterval = changeCaptureInterval
         self.logger.debug(u'Device name {}, props "{}".'.format(self.name,self.props))
         if self.props != instance.pluginProps:
             self.logger.debug(u'Replacing props for device name {}'.format(self.name))
@@ -417,6 +420,11 @@ class SmartSetpoints(object):
             #self.temperatureInput = newVar.value
             self.logger.debug(u'"{}" outputVariableUpdated - new variable [{}]'.format(self.name, newVar))
 
+    #-------------------------------------------------------------------------------
+    def updateChangeCaptureInterval(self, changeCaptureInterval):
+        self.logger.debug(u'"{}" updateChangeCaptureInterval - new value [{}]'.format(self.name, changeCaptureInterval))
+        self.changeCaptureInterval = changeCaptureInterval
+        
     #-------------------------------------------------------------------------------
     def getModeName(self, mode=None):
         if mode is None: mode = self.hvacOperationMode
