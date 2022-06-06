@@ -29,8 +29,8 @@ class Plugin(indigo.PluginBase):
         self.setpointAutoInterval = self.pluginPrefs.get("setpointAutoInterval",30)
         self.pauseInterval = self.pluginPrefs.get("pauseInterval",60)
         self.changeCaptureInterval = self.pluginPrefs.get("changeCaptureInterval",5)
-        self.logger.debug(u"startup")
-        self.logger.debug(u"showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
+        self.logger.debug("startup")
+        self.logger.debug("showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
             str(self.debug), str(self.setpointAutoInterval), str(self.pauseInterval), str(self.changeCaptureInterval)))
         self.deviceDict = dict()
         self.floatPrecision = 1
@@ -40,7 +40,7 @@ class Plugin(indigo.PluginBase):
 
     #-------------------------------------------------------------------------------
     def shutdown(self):
-        self.logger.debug(u"shutdown")
+        self.logger.debug("shutdown")
         self.pluginPrefs['showDebugInfo'] = self.debug
         self.pluginPrefs['setpointAutoInterval'] = self.setpointAutoInterval
         self.pluginPrefs['pauseInterval'] = self.pauseInterval
@@ -48,21 +48,21 @@ class Plugin(indigo.PluginBase):
 
     #-------------------------------------------------------------------------------
     def closedPrefsConfigUi(self, valuesDict, userCancelled):
-        self.logger.debug(u"closedPrefsConfigUi")
+        self.logger.debug("closedPrefsConfigUi")
         if not userCancelled:
             self.debug = valuesDict.get('showDebugInfo',False)
             self.setpointAutoInterval = valuesDict.get("setpointAutoInterval",30)
             self.pauseInterval = valuesDict.get("pauseInterval",60)
             self.changeCaptureInterval = valuesDict.get("changeCaptureInterval",5)
-            for devId in self.deviceDict.iterkeys():
+            for devId in self.deviceDict.keys():
                 setpointDevice = self.deviceDict[devId]
                 setpointDevice.updateChangeCaptureInterval(self.changeCaptureInterval)   
-            self.logger.debug(u"showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
+            self.logger.debug("showDebugInfo:{}, setpointAutoInterval:{}, pauseInterval:{}, changeCaptureInterval:{}".format(
                 str(self.debug), str(self.setpointAutoInterval), str(self.pauseInterval), str(self.changeCaptureInterval)))
 
     ########################################
     def runConcurrentThread(self):
-        self.logger.debug(u"Starting concurrent thread")
+        self.logger.debug("Starting concurrent thread")
         try:
             while True:
                 currentDate = datetime.datetime.now()
@@ -70,17 +70,17 @@ class Plugin(indigo.PluginBase):
                 if remainder == 1:
                     try:
                         # cycle through each Smart Setpoint device
-                        for devId in self.deviceDict.iterkeys():
+                        for devId in self.deviceDict.keys():
                             # call the update method with the device instance
                             setpointDevice = indigo.devices[devId]
                             lastManualUpdStr = setpointDevice.states.get('lastManualUpdate')
                             lastManualUpdate = datetime.datetime.strptime(lastManualUpdStr, '%Y-%m-%d %H:%M:%S.%f')
                             timeDelta = currentDate - lastManualUpdate
                             lastUpdMin = int(timeDelta.days * 1440 + timeDelta.seconds/60)
-                            self.logger.debug(u'"{}" runConcurrentThread - smart setpoint check - PluginProps [Heat:{} Cool:{} ThermoStatId:{}]'.format(
+                            self.logger.debug('"{}" runConcurrentThread - smart setpoint check - PluginProps [Heat:{} Cool:{} ThermoStatId:{}]'.format(
                                 setpointDevice.name, setpointDevice.pluginProps.get('SupportsHeatSetpoint'), setpointDevice.pluginProps.get('SupportsCoolSetpoint'),
                                 setpointDevice.pluginProps.get('outputDevice')))
-                            self.logger.debug(u'"{}" runConcurrentThread - smart setpoint check - States [lastManualUpdate ts:{} min:{}, Heat target:{} device:{}, Cool target:{} device:{}]'.format(
+                            self.logger.debug('"{}" runConcurrentThread - smart setpoint check - States [lastManualUpdate ts:{} min:{}, Heat target:{} device:{}, Cool target:{} device:{}]'.format(
                                 setpointDevice.name, lastManualUpdStr, str(lastUpdMin), setpointDevice.states['heatSetpoint'], setpointDevice.states['device_setpointHeat'],
                                 setpointDevice.states['coolSetpoint'], setpointDevice.states['device_setpointCool'] ))         
                             if lastUpdMin > self.pauseInterval:
@@ -103,14 +103,14 @@ class Plugin(indigo.PluginBase):
                                     if bool(setpointDevice.pluginProps.get(config['supportedProp'])):
                                         hrSetpoints = setpointDevice.states.get(config['statesPrefix'] + getPaddedHourStr(currentDate.hour))
                                         smartTemp = getTemperatureStrFromFloat(getSmartTemperature(hrSetpoints))
-                                        self.logger.debug(u'"{}" runConcurrentThread - smart setpoint check - target {}:{}'.format(setpointDevice.name, 
+                                        self.logger.debug('"{}" runConcurrentThread - smart setpoint check - target {}:{}'.format(setpointDevice.name, 
                                                     config['statesPrefix'], smartTemp))
                                         if setpointDevice.pluginProps.get('outputDevice', None) is not None:
                                             thermostatDev = indigo.devices[int(setpointDevice.pluginProps['outputDevice'])]
                                             curThermSetpoint = getTemperatureStrFromFloat(thermostatDev.states[config['thermostatState']])
                                             if curThermSetpoint != smartTemp:
                                                 updatedSetpoints = True
-                                                self.logger.info(u'"{}" - updated thermostat {} to smart {}:{}'.format(setpointDevice.name, 
+                                                self.logger.info('"{}" - updated thermostat {} to smart {}:{}'.format(setpointDevice.name, 
                                                         thermostatDev.name, config['statesPrefix'], smartTemp))
                                                 # update the last smart time - this info is used to ensure we don't collect and track this update as user-input
                                                 keyValueList = []
@@ -128,7 +128,7 @@ class Plugin(indigo.PluginBase):
 
 
                     except self.StopThread:
-			            pass	# Optionally catch the StopThread exception and do any needed cleanup.    
+                        pass	# Optionally catch the StopThread exception and do any needed cleanup.    
                     #finally:
                     #    pass
                 #else:
@@ -144,22 +144,22 @@ class Plugin(indigo.PluginBase):
     # Device Methods
     #-------------------------------------------------------------------------------
     def deviceStartComm(self, dev):
-        self.logger.debug(u"deviceStartComm: {}".format(dev.name))
+        self.logger.debug("deviceStartComm: {}".format(dev.name))
         if dev.configured:
             if dev.deviceTypeId == 'SmartSetpoints':
                 self.deviceDict[dev.id] = SmartSetpoints(dev, self.changeCaptureInterval, self.logger)
 
     #-------------------------------------------------------------------------------
     def deviceStopComm(self, dev):
-        self.logger.debug(u"deviceStopComm: {}".format(dev.name))
+        self.logger.debug("deviceStopComm: {}".format(dev.name))
         if dev.id in self.deviceDict:
             del self.deviceDict[dev.id]
 
     #-------------------------------------------------------------------------------
     def didDeviceCommPropertyChangeBLAH(self, origDev, newDev):
-        self.logger.debug(u"didDeviceCommPropertyChange: {}".format(newDev.name))
+        self.logger.debug("didDeviceCommPropertyChange: {}".format(newDev.name))
         if newDev.pluginId == self.pluginId and origDev.pluginProps.get('HeatSetpointDict', None) != newDev.pluginProps.get('HeatSetpointDict', None):
-            self.logger.debug(u"didDeviceCommPropertyChange - new HeatSetpointDict: {}".format(newDev.pluginProps.get('HeatSetpointDict', None)))
+            self.logger.debug("didDeviceCommPropertyChange - new HeatSetpointDict: {}".format(newDev.pluginProps.get('HeatSetpointDict', None)))
             return False
         return indigo.PluginBase.didDeviceCommPropertyChange(self, origDev, newDev)
 
@@ -180,7 +180,7 @@ class Plugin(indigo.PluginBase):
 
 
         if len(errorsDict) > 0:
-            self.logger.debug(u"validate device config error: \n{}".format(errorsDict))
+            self.logger.debug("validate device config error: \n{}".format(errorsDict))
             return (False, valuesDict, errorsDict)
         return (True, valuesDict)
 
@@ -220,7 +220,7 @@ class Plugin(indigo.PluginBase):
 
 
         if len(errorsDict) > 0:
-            self.logger.debug(u"validate device config error: \n{}".format(errorsDict))
+            self.logger.debug("validate device config error: \n{}".format(errorsDict))
             return (False, valuesDict, errorsDict)
         return (True, valuesDict)
 
@@ -240,11 +240,11 @@ class Plugin(indigo.PluginBase):
     #-------------------------------------------------------------------------------
     def toggleDebug(self):
         if self.debug:
-            self.logger.debug(u"Debug logging disabled")
+            self.logger.debug("Debug logging disabled")
             self.debug = False
         else:
             self.debug = True
-            self.logger.debug(u"Debug logging enabled")
+            self.logger.debug("Debug logging enabled")
 
     #-------------------------------------------------------------------------------
     # subscribed changes
@@ -256,12 +256,12 @@ class Plugin(indigo.PluginBase):
             if newDev.id in self.deviceDict:
                 self.deviceDict[newDev.id].selfDeviceUpdated(newDev)
         else:
-            for devId, setpointDevice in self.deviceDict.items():
+            for devId, setpointDevice in list(self.deviceDict.items()):
                 setpointDevice.outputDeviceUpdated(newDev)
 
     #-------------------------------------------------------------------------------
     def variableUpdated(self, oldVar, newVar):
-        for devId, setpointDevice in self.deviceDict.items():
+        for devId, setpointDevice in list(self.deviceDict.items()):
             setpointDevice.outputVariableUpdated(newVar)
 
 ###############################################################################
@@ -275,9 +275,9 @@ class SmartSetpoints(object):
         self.dev = instance
         self.props = instance.pluginProps
         self.changeCaptureInterval = changeCaptureInterval
-        self.logger.debug(u'Device name {}, props "{}".'.format(self.name,self.props))
+        self.logger.debug('Device name {}, props "{}".'.format(self.name,self.props))
         if self.props != instance.pluginProps:
-            self.logger.debug(u'Replacing props for device name {}'.format(self.name))
+            self.logger.debug('Replacing props for device name {}'.format(self.name))
             instance.replacePluginPropsOnServer(self.props)
 
         self.outputType = 'device'
@@ -288,7 +288,7 @@ class SmartSetpoints(object):
             self.outputDeviceId = None
             self.outputVariableId = int(self.props['outputVariable'])
         else:
-            self.logger.error(u'"{}" output init failed'.format(self.name))
+            self.logger.error('"{}" output init failed'.format(self.name))
             raise
 
         self.supportsCool = bool(self.props['SupportsCoolSetpoint'])
@@ -327,15 +327,15 @@ class SmartSetpoints(object):
             keyValueList.append({'key':'lastSmartUpdate', 'value':str(datetime.datetime.now())})
         if len(keyValueList) > 0:
             self.dev.updateStatesOnServer(keyValueList)
-            self.logger.debug(u'Updated states for {}, states={}'.format(self.name, self.dev.states))
+            self.logger.debug('Updated states for {}, states={}'.format(self.name, self.dev.states))
         
-        self.logger.debug(u'SmartSetpoints init device name {}, states={}'.format(self.name, self.dev.states))
+        self.logger.debug('SmartSetpoints init device name {}, states={}'.format(self.name, self.dev.states))
 
 
     #-------------------------------------------------------------------------------
     def selfDeviceUpdated(self, newDev):
         self.dev = newDev
-        self.logger.debug(u'"{}" selfDeviceUpdated - evaluate equipment state [H:{}, C:{}]'.format(
+        self.logger.debug('"{}" selfDeviceUpdated - evaluate equipment state [H:{}, C:{}]'.format(
             self.name, self.heatSetpoint, self.coolSetpoint))
 
     #-------------------------------------------------------------------------------
@@ -357,7 +357,7 @@ class SmartSetpoints(object):
             ]
             for config in setPointConfigs:
                 if bool(self.props.get(config['supportedProp'])) and newDev.states.get(config['thermostatState'], None) is not None:
-                    self.logger.debug(u'"{}" outputDeviceUpdated - has {} {}'.format(self.name, 
+                    self.logger.debug('"{}" outputDeviceUpdated - has {} {}'.format(self.name, 
                             config['curDeviceState'], str(newDev.states[config['thermostatState']])))
                     updatedSetpoints = False
                     keyValueList = []
@@ -377,16 +377,16 @@ class SmartSetpoints(object):
                         timeDelta = currentDate - lastSmartUpdate
                         diffMinutes = int(timeDelta.days * 1440 + timeDelta.seconds/60)
                         # don't collect the prefs if it came from our smart update
-                        self.logger.debug(u'"{}" outputDeviceUpdated - checking update of {} from {} to {}'.format(self.name, 
+                        self.logger.debug('"{}" outputDeviceUpdated - checking update of {} from {} to {}'.format(self.name, 
                                 config['curDeviceState'], selfSetpoint, newDevSetpoint))
-                        self.logger.debug(u'"{}" outputDeviceUpdated - lastSmartUpdate:{} min:{}'.format(self.name, 
+                        self.logger.debug('"{}" outputDeviceUpdated - lastSmartUpdate:{} min:{}'.format(self.name, 
                                 lastSmartUpdateStr, str(diffMinutes)))
                         if diffMinutes > 1:
                             hrSuffix = getPaddedHourStr(currentDate.hour)
                             currentHrSetpoint = self.dev.states[config['statesPrefix'] + hrSuffix]
                             lastUpdateStr = self.dev.states['lastManualUpdate']
                             
-                            self.logger.debug(u'"{}" outputDeviceUpdated - lastUpd:{}, newUpd:{}]'.format(self.name, 
+                            self.logger.debug('"{}" outputDeviceUpdated - lastUpd:{}, newUpd:{}]'.format(self.name, 
                                     lastUpdateStr, str(currentDate)))
                             newSetpointHrStr = getSmartTemperatureStrForHour(currentStr=currentHrSetpoint, newTemp=newDevSetpoint, 
                                         lastUpdateStr=lastUpdateStr, curDate=currentDate, captureInterval=self.changeCaptureInterval)
@@ -403,7 +403,7 @@ class SmartSetpoints(object):
                             keyValueList.append({'key':config['statesPrefix'] + hrSuffix, 'value':newSetpointHrStr})
                             
                             newSmartAvg = getTemperatureStrFromFloat(getSmartTemperature(newSetpointHrStr))
-                            self.logger.info(u'"{}" - smart setpoint capture for hour:{} {}:{} NEW smartAverage:{}]'.format(self.name, 
+                            self.logger.info('"{}" - smart setpoint capture for hour:{} {}:{} NEW smartAverage:{}]'.format(self.name, 
                                 hrSuffix, config['curSetpointState'], newSetpointHrStr, newSmartAvg))
 
                     if len(keyValueList) > 0:
@@ -418,30 +418,30 @@ class SmartSetpoints(object):
     def outputVariableUpdated(self, newVar):
         if newVar.id == self.outputVariableId:
             #self.temperatureInput = newVar.value
-            self.logger.debug(u'"{}" outputVariableUpdated - new variable [{}]'.format(self.name, newVar))
+            self.logger.debug('"{}" outputVariableUpdated - new variable [{}]'.format(self.name, newVar))
 
     #-------------------------------------------------------------------------------
     def updateChangeCaptureInterval(self, changeCaptureInterval):
-        self.logger.debug(u'"{}" updateChangeCaptureInterval - new value [{}]'.format(self.name, changeCaptureInterval))
+        self.logger.debug('"{}" updateChangeCaptureInterval - new value [{}]'.format(self.name, changeCaptureInterval))
         self.changeCaptureInterval = changeCaptureInterval
         
     #-------------------------------------------------------------------------------
     def getModeName(self, mode=None):
         if mode is None: mode = self.hvacOperationMode
-        return self.modeNameMap.get(mode, u'Unknown')
+        return self.modeNameMap.get(mode, 'Unknown')
 
     def updateSetpointDisplay(self):
         curHeat = self.dev.states['heatSetpoint'] 
         curCool = self.dev.states['coolSetpoint']
         imageIcon = None 
         if self.supportsCool and self.supportsHeat:
-            displayValue = u'H:{:.{}f}\xb0{} / C:{:.{}f}\xb0{}'.format(float(curHeat),1,self.temperatureUnits,float(curCool),1,self.temperatureUnits)
+            displayValue = 'H:{:.{}f}\xb0{} / C:{:.{}f}\xb0{}'.format(float(curHeat),1,self.temperatureUnits,float(curCool),1,self.temperatureUnits)
             imageIcon = indigo.kStateImageSel.HvacAutoMode
         elif self.supportsCool:
-            displayValue = u'C:{:.{}f}\xb0{}'.format(float(curCool),1,self.temperatureUnits)
+            displayValue = 'C:{:.{}f}\xb0{}'.format(float(curCool),1,self.temperatureUnits)
             imageIcon = indigo.kStateImageSel.HvacCoolMode
         else:
-            displayValue = u'H:{:.{}f}\xb0{}'.format(float(curHeat),1,self.temperatureUnits)
+            displayValue = 'H:{:.{}f}\xb0{}'.format(float(curHeat),1,self.temperatureUnits)
             imageIcon = indigo.kStateImageSel.HvacHeatMode
 
         self.dev.states['setpointDisplay'] = displayValue
@@ -460,9 +460,9 @@ class SmartSetpoints(object):
         if newVal != self.heatSetpoint:
             try:
                 self.dev.updateStateOnServer('heatSetpoint', float(newVal))
-                self.logger.debug(u'"{}" received heatSetpoint "{}"'.format(self.name, float(newVal)))
+                self.logger.debug('"{}" received heatSetpoint "{}"'.format(self.name, float(newVal)))
             except ValueError:
-                self.logger.error(u'"{}" received invalid input "{}" ({})'.format(self.name, newVal, type(newVal)))
+                self.logger.error('"{}" received invalid input "{}" ({})'.format(self.name, newVal, type(newVal)))
     heatSetpoint = property(_heatSetpointGet,_heatSetpointSet)
     
     def _coolSetpointGet(self):
@@ -474,9 +474,9 @@ class SmartSetpoints(object):
         if newVal != self.coolSetpoint:
             try:
                 self.dev.updateStateOnServer('coolSetpoint', float(newVal))
-                self.logger.debug(u'"{}" received coolSetpoint "{}"'.format(self.name, float(newVal)))
+                self.logger.debug('"{}" received coolSetpoint "{}"'.format(self.name, float(newVal)))
             except ValueError:
-                self.logger.error(u'"{}" received invalid input "{}" ({})'.format(self.name, newVal, type(newVal)))
+                self.logger.error('"{}" received invalid input "{}" ({})'.format(self.name, newVal, type(newVal)))
     coolSetpoint = property(_coolSetpointGet,_coolSetpointSet)
 
     #-------------------------------------------------------------------------------
