@@ -167,6 +167,8 @@ class Plugin(indigo.PluginBase):
     def validateDeviceConfigUi(self, valuesDict, typeId, devId):
         errorsDict = indigo.Dict()
 
+        self.logger.debug("validateDeviceConfigUi: valuesDict {}".format(valuesDict))
+
         # validate output 
         if not valuesDict.get('outputDevice', 0):
             errorsDict['outputDevice'] = "Required"
@@ -175,8 +177,20 @@ class Plugin(indigo.PluginBase):
         if typeId == 'SmartSetpoints':
             if not validateTextFieldNumber(valuesDict['InitialCoolSetpoint'], numType=float, zero=False, negative=False):
                 errorsDict['InitialCoolSetpoint'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialCoolSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialCoolSetpointAm'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialCoolSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialCoolSetpointDay'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialCoolSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialCoolSetpointNight'] = "Must be a positive float"
             if not validateTextFieldNumber(valuesDict['InitialHeatSetpoint'], numType=float, zero=False, negative=False):
                 errorsDict['InitialHeatSetpoint'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialHeatSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialHeatSetpointAm'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialHeatSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialHeatSetpointDay'] = "Must be a positive float"
+            if not validateTextFieldNumber(valuesDict['InitialHeatSetpoint'], numType=float, zero=False, negative=False):
+                errorsDict['InitialHeatSetpointNight'] = "Must be a positive float"
 
 
         if len(errorsDict) > 0:
@@ -184,45 +198,102 @@ class Plugin(indigo.PluginBase):
             return (False, valuesDict, errorsDict)
         return (True, valuesDict)
 
-    def validateDeviceConfigUiBackup(self, valuesDict, typeId, devId):
+
+    #-------------------------------------------------------------------------------
+    def resetSetpoints(self, valuesDict, typeId, devId):
+
+        self.logger.debug(f"resetSetpoints called, devId={devId}, typeId={typeId}, valuesDict = {valuesDict}")
+
         errorsDict = indigo.Dict()
 
-        # validate input
-        if valuesDict.get('inputType','dev') == 'dev':
-            if valuesDict.get('inputDevice',0):
-                if valuesDict.get('inputState',''):
-                    testStateValue = indigo.devices[int(valuesDict['inputDevice'])].states[valuesDict['inputState']]
-                    if not validateTextFieldNumber(testStateValue, numType=float, zero=True, negative=True):
-                        errorsDict['inputState'] = "Must be a numerical state"
-                else:
-                    errorsDict['inputState'] = "Required"
-            else:
-                errorsDict['inputDevice'] = "Required"
+        #self.logger.debug("resetSetpoints: valuesDict {}".format(valuesDict))
+        setpointDevice = indigo.devices[devId]
 
-        elif valuesDict.get('inputType','dev') == 'var':
-            if valuesDict.get('inputVariable',0):
-                testStateValue = indigo.variables[int(valuesDict['inputVariable'])].value
-                if not validateTextFieldNumber(testStateValue, numType=float, zero=True, negative=True):
-                    errorsDict['inputVariable'] = "Must have a numerical value"
-            else:
-                errorsDict['inputVariable'] = "Required"
+        supportsCool = bool(valuesDict['SupportsCoolSetpoint'])
+        supportsHeat = bool(valuesDict['SupportsHeatSetpoint'])
+        temperatureUnits = valuesDict['temperatureUnits']
 
-        if not validateTextFieldNumber(valuesDict['deadband'], numType=float, zero=True, negative=False):
-            errorsDict['deadband'] = "Must be a number 0 or greater"
+        keyValueList = []
+        # Initialize the core states
+        if supportsHeat is True:
+            #if setpointDevice.states.get('heatSetpoint', None) is None or len(setpointDevice.states.get('heatSetpoint')) == 0:
+            self.logger.debug("resetSetpoints: heatSetpoint")
+            setpointStr = getTemperatureStrFromFloat(valuesDict['InitialHeatSetpoint'])
+            setpointDevice.states['heatSetpoint'] = setpointStr
+            setpointStrAm = setpointStr
+            if valuesDict.get('InitialHeatSetpointAm', None) is not None:
+                setpointStrAm = getTemperatureStrFromFloat(valuesDict['InitialHeatSetpointAm'])    
+            setpointStrDay = setpointStr
+            if valuesDict.get('InitialHeatSetpointDay', None) is not None:
+                setpointStrDay = getTemperatureStrFromFloat(valuesDict['InitialHeatSetpointDay']) 
+            setpointStrNight = setpointStr
+            if valuesDict.get('InitialHeatSetpointNight', None) is not None:
+                setpointStrNight = getTemperatureStrFromFloat(valuesDict['InitialHeatSetpointNight']) 
 
-        if not validateTextFieldNumber(valuesDict['inputDecimals'], numType=int, zero=True, negative=False):
-            errorsDict['inputDecimals'] = "Must be an integer 0 or greater"
+            setpointDevice.states['device_setpointHeat'] = setpointStr
+            keyValueList.append({'key':'heatSetpoint', 'value':setpointStr})
+            keyValueList.append({'key':'device_setpointHeat', 'value':setpointStr})
+            for hourIdx in range(0,6):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['heatsetpoint' + hrSuffix] = setpointStr
+                keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStr})
+            for hourIdx in range(6,12):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['heatsetpoint' + hrSuffix] = setpointStrAm
+                keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrAm})
+            for hourIdx in range(12,18):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['heatsetpoint' + hrSuffix] = setpointStrDay
+                keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrDay})
+            for hourIdx in range(18,24):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['heatsetpoint' + hrSuffix] = setpointStrNight
+                keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrNight})
 
-        # validate device unistat
-        if typeId == 'DeviceUnistat':
-            if not validateTextFieldNumber(valuesDict['dimmerControlLevel'], numType=int, zero=False, negative=False):
-                errorsDict['dimmerControlLevel'] = "Must be a positive integer"
+        if supportsCool is True:
+            #if setpointDevice.states.get('coolSetpoint', None) is None or len(setpointDevice.states.get('coolSetpoint')) == 0:
+            self.logger.debug("resetSetpoints: coolSetpoint")
+            setpointStr = getTemperatureStrFromFloat(valuesDict['InitialCoolSetpoint'])
+            setpointStrAm = setpointStr
+            if valuesDict.get('InitialCoolSetpointAm', None) is not None:
+                setpointStrAm = getTemperatureStrFromFloat(valuesDict['InitialCoolSetpointAm'])    
+            setpointStrDay = setpointStr
+            if valuesDict.get('InitialCoolSetpointDay', None) is not None:
+                setpointStrDay = getTemperatureStrFromFloat(valuesDict['InitialCoolSetpointDay']) 
+            setpointStrNight = setpointStr
+            if valuesDict.get('InitialCoolSetpointNight', None) is not None:
+                setpointStrNight = getTemperatureStrFromFloat(valuesDict['InitialCoolSetpointNight']) 
 
+            setpointDevice.states['coolSetpoint'] = setpointStr
+            setpointDevice.states['device_setpointCool'] = setpointStr
+            keyValueList.append({'key':'coolSetpoint', 'value':setpointStr})
+            keyValueList.append({'key':'device_setpointCool', 'value':setpointStr})
+            for hourIdx in range(0,6):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['coolsetpoint' + hrSuffix] = setpointStr
+                keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStr})
+            for hourIdx in range(6,12):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['coolsetpoint' + hrSuffix] = setpointStrAm
+                keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrAm})
+            for hourIdx in range(12,18):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['coolsetpoint' + hrSuffix] = setpointStrDay
+                keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrDay})
+            for hourIdx in range(18,24):
+                hrSuffix = getPaddedHourStr(hourIdx)
+                setpointDevice.states['coolsetpoint' + hrSuffix] = setpointStrNight
+                keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrNight})
 
         if len(errorsDict) > 0:
             self.logger.debug("validate device config error: \n{}".format(errorsDict))
             return (False, valuesDict, errorsDict)
-        return (True, valuesDict)
+
+        if len(keyValueList) > 0:
+            setpointDevice.updateStatesOnServer(keyValueList)
+            self.logger.debug('Updated states for {}, states={}'.format(setpointDevice.name,setpointDevice.states))
+        
+        return valuesDict
 
 
     #-------------------------------------------------------------------------------
@@ -300,25 +371,72 @@ class SmartSetpoints(object):
         if self.supportsHeat is True:
             if self.dev.states.get('heatSetpoint', None) is None or len(self.dev.states.get('heatSetpoint')) == 0:
                 setpointStr = getTemperatureStrFromFloat(self.props['InitialHeatSetpoint'])
+                setpointStrAm = setpointStr
+                if self.props.get('InitialHeatSetpointAm', None) is not None:
+                    setpointStrAm = getTemperatureStrFromFloat(self.props['InitialHeatSetpointAm'])    
+                setpointStrDay = setpointStr
+                if self.props.get('InitialHeatSetpointDay', None) is not None:
+                    setpointStrDay = getTemperatureStrFromFloat(self.props['InitialHeatSetpointDay']) 
+                setpointStrNight = setpointStr
+                if self.props.get('InitialHeatSetpointNight', None) is not None:
+                    setpointStrNight = getTemperatureStrFromFloat(self.props['InitialHeatSetpointNight']) 
+
                 self.dev.states['heatSetpoint'] = setpointStr
                 self.dev.states['device_setpointHeat'] = setpointStr
                 keyValueList.append({'key':'heatSetpoint', 'value':setpointStr})
                 keyValueList.append({'key':'device_setpointHeat', 'value':setpointStr})
-                for hourIdx in range(24):
+                for hourIdx in range(0,6):
                     hrSuffix = getPaddedHourStr(hourIdx)
                     self.dev.states['heatsetpoint' + hrSuffix] = setpointStr
                     keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStr})
+                for hourIdx in range(6,12):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['heatsetpoint' + hrSuffix] = setpointStrAm
+                    keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrAm})
+                for hourIdx in range(12,18):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['heatsetpoint' + hrSuffix] = setpointStrDay
+                    keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrDay})
+                for hourIdx in range(18,24):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['heatsetpoint' + hrSuffix] = setpointStrNight
+                    keyValueList.append({'key':'heatsetpoint' + hrSuffix, 'value':setpointStrNight})
+
+
         if self.supportsCool is True:
             if self.dev.states.get('coolSetpoint', None) is None or len(self.dev.states.get('coolSetpoint')) == 0:
                 setpointStr = getTemperatureStrFromFloat(self.props['InitialCoolSetpoint'])
+                setpointStrAm = setpointStr
+                if self.props.get('InitialCoolSetpointAm', None) is not None:
+                    setpointStrAm = getTemperatureStrFromFloat(self.props['InitialCoolSetpointAm'])    
+                setpointStrDay = setpointStr
+                if self.props.get('InitialCoolSetpointDay', None) is not None:
+                    setpointStrDay = getTemperatureStrFromFloat(self.props['InitialCoolSetpointDay']) 
+                setpointStrNight = setpointStr
+                if self.props.get('InitialCoolSetpointNight', None) is not None:
+                    setpointStrNight = getTemperatureStrFromFloat(self.props['InitialCoolSetpointNight']) 
+
                 self.dev.states['coolSetpoint'] = setpointStr
                 self.dev.states['device_setpointCool'] = setpointStr
                 keyValueList.append({'key':'coolSetpoint', 'value':setpointStr})
                 keyValueList.append({'key':'device_setpointCool', 'value':setpointStr})
-                for hourIdx in range(24):
+                for hourIdx in range(0,6):
                     hrSuffix = getPaddedHourStr(hourIdx)
                     self.dev.states['coolsetpoint' + hrSuffix] = setpointStr
                     keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStr})
+                for hourIdx in range(6,12):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['coolsetpoint' + hrSuffix] = setpointStrAm
+                    keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrAm})
+                for hourIdx in range(12,18):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['coolsetpoint' + hrSuffix] = setpointStrDay
+                    keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrDay})
+                for hourIdx in range(18,24):
+                    hrSuffix = getPaddedHourStr(hourIdx)
+                    self.dev.states['coolsetpoint' + hrSuffix] = setpointStrNight
+                    keyValueList.append({'key':'coolsetpoint' + hrSuffix, 'value':setpointStrNight})
+
         if len(self.dev.states.get('lastManualUpdate')) == 0:
             self.dev.states['lastManualUpdate'] = str(datetime.datetime.now())
             keyValueList.append({'key':'lastManualUpdate', 'value':str(datetime.datetime.now())})
