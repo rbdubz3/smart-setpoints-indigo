@@ -32,13 +32,40 @@
 				<Label>Learn Cool Setpoint:</Label>
 			</Field>
 			<Field type='textfield' id="InitialCoolSetpoint" defaultValue='85' visibleBindingId='SupportsCoolSetpoint' visibleBindingValue='true'>
-				<Label>Initial Cool Setpoint:</Label>
+				<Label>Initial Cool Setpoint 12am-6am:</Label>
+			</Field>
+			<Field type='textfield' id="InitialCoolSetpointAm" defaultValue='85' visibleBindingId='SupportsCoolSetpoint' visibleBindingValue='true'>
+				<Label>Initial Cool Setpoint 6am-12pm:</Label>
+			</Field>
+			<Field type='textfield' id="InitialCoolSetpointDay" defaultValue='85' visibleBindingId='SupportsCoolSetpoint' visibleBindingValue='true'>
+				<Label>Initial Cool Setpoint 12pm-6pm:</Label>
+			</Field>
+			<Field type='textfield' id="InitialCoolSetpointNight" defaultValue='85' visibleBindingId='SupportsCoolSetpoint' visibleBindingValue='true'>
+				<Label>Initial Cool Setpoint 6pm-12am:</Label>
 			</Field>
 			<Field id="SupportsHeatSetpoint" type="checkbox" defaultValue="true">
 				<Label>Learn Heat Setpoint:</Label>
 			</Field>
 			<Field type='textfield' id="InitialHeatSetpoint" defaultValue='65' visibleBindingId='SupportsHeatSetpoint' visibleBindingValue='true'>
-				<Label>Initial Heat Setpoint:</Label>
+				<Label>Initial Heat Setpoint 12am-6am:</Label>
+			</Field>
+			<Field type='textfield' id="InitialHeatSetpointAm" defaultValue='65' visibleBindingId='SupportsHeatSetpoint' visibleBindingValue='true'>
+				<Label>Initial Heat Setpoint 6am-12pm:</Label>
+			</Field>
+			<Field type='textfield' id="InitialHeatSetpointDay" defaultValue='65' visibleBindingId='SupportsHeatSetpoint' visibleBindingValue='true'>
+				<Label>Initial Heat Setpoint 12pm-6pm:</Label>
+			</Field>
+			<Field type='textfield' id="InitialHeatSetpointNight" defaultValue='65' visibleBindingId='SupportsHeatSetpoint' visibleBindingValue='true'>
+				<Label>Initial Heat Setpoint 6pm-12am:</Label>
+			</Field>
+			<Field type="separator" id="resetSeparator" />
+			<Field id='resetDescription' type='label' fontColor='blue'>
+                <Label>Reset Setpoints to the initial values.</Label>
+			</Field>
+			<Field  id="resetSetpoints" type="button" tooltip="This will reset the hourly smart setting to the setpoints above">
+				<Label>Click here to reset the setpoints</Label>
+				<Title>Reset Setpoints</Title>
+				<CallbackMethod>resetSetpoints</CallbackMethod>
 			</Field>
 		</ConfigUI>
 		<States>
